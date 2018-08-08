@@ -1,3 +1,9 @@
+/*
+   Author:M.Ashish Kumar
+   Thanks to www.gamecodeschool.com and its forum for the tip to eliminate error using SoundPool
+   Thanks to Freesound.org and music/sound creators for providing various sound effects
+ */
+
 package com.dev.ashish.biteandclimb;
 
 import android.media.AudioAttributes;
@@ -11,18 +17,26 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = "MainActivity";
     protected int dice_num;
+    int diceIndex ;
     SoundPool soundPool;
     MediaPlayer mp;
     SoundPool.Builder soundPoolBuilder;
     AudioAttributes audioAttributes;
     AudioAttributes.Builder audioAttributesBuilder;
     int diceRoll;
+
     boolean loaded = false;
     ImageView diceView;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -35,72 +49,45 @@ public class MainActivity extends AppCompatActivity {
           @Override
           public void onClick(View view) {
             dice_num = diceRollRandom();
+              diceIndex = dice_num-1;
             setDice();
 
-            /*createSound();
-            loadSounds();
+            createSound();
+            loadDiceRollSound();
+            //This code sets the time for loading the sample.Eliminates the error"Sample 1 not ready"
+            android.os.SystemClock.sleep(1000);
+            //Checks whether the samples have been loaded. If true,plays the sound
             if(loaded){
                 soundPool.play(diceRoll,1,1,0,0,1);
             }
-            */
-              mp.start();
+
+
 
             Log.d(TAG, "onClick: On Click is working");
          }
         });
-    
+
 
 
 
     }
-    protected int diceRes(int a){
-        int resId = 0;
-        switch(a){
-            case 1:
-                resId = R.drawable.dice1;
-        Log.d(TAG, "diceRes: 1");
-                break;
-            case 2:
-                resId = R.drawable.dice2;
-                Log.d(TAG, "diceRes: 1");
-                break;
-            case 3:
-                resId = R.drawable.dice3;
-                Log.d(TAG, "diceRes: 1");
-                break;
-            case 4:
-                resId = R.drawable.dice4;
-                Log.d(TAG, "diceRes: 1");
-                break;
-            case 5:
-                resId = R.drawable.dice5;
-                Log.d(TAG, "diceRes: 1");
-                break;
-            case 6:
-                resId = R.drawable.dice6;
-                Log.d(TAG, "diceRes: 1");
-                break;
-            default:
-                break;
-
-        }
-        return resId;
-        }
-
-
+    //Method for generating random numbers from 1 to 6
     protected int diceRollRandom(){
         return (int) (Math.random() * ((6 - 1) + 1)) + 1;
 
     }
+    //Method for setting the image of the dice based on diceIndex
+    //DiceImageAssets : Uses a class to load the List of Dice Images
     protected void setDice(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            diceView.setImageDrawable(getResources().getDrawable(diceRes(dice_num)));
+            diceView.setImageDrawable(getResources().getDrawable(setDiceId(DiceImageAssets.getDices())));
             Log.d(TAG, "setDice: " + dice_num);
         }
         else{
-            diceView.setImageDrawable(getResources().getDrawable(diceRes(dice_num)));
+            diceView.setImageDrawable(getResources().getDrawable(setDiceId(DiceImageAssets.getDices())));
         }
     }
+    //Sets new Audio Attributes for any SoundID
     protected void createSound(){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
             audioAttributesBuilder = new AudioAttributes.Builder();
@@ -118,7 +105,9 @@ public class MainActivity extends AppCompatActivity {
             soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC,0);
         }
     }
-    protected void loadSounds(){
+    //Loads Audio Attributes for DiceRoll SoundID and Uses OnLoadComplete Method to keep track of sample
+
+    protected void loadDiceRollSound(){
       diceRoll = soundPool.load(this, R.raw.dice_roll, 1);
         soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
             public void onLoadComplete(SoundPool soundPool, int sampleId,int status) {
@@ -126,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    Log.d(TAG, "loadSounds: done");
+    Log.d(TAG, "loadDiceRollSound: done");
     }
 
-
+//To get rid of looping and playing even after moving to new Activity
     @Override
     protected void onPause() {
         super.onPause();
@@ -140,6 +129,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         createSound();
-        loadSounds();
+        loadDiceRollSound();
+    }
+
+    public int setDiceId(List<Integer> diceId) {
+          return diceId.get(diceIndex);
+
     }
 }
